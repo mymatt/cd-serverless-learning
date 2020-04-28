@@ -75,11 +75,11 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-              - Effect: Allow
-                Action:
-                  - sts:AssumeRole
-                Resource:
-                  - !Sub arn:aws:iam::${ProductionAccountId}:role/CodePipelineServiceRole-${AWS::Region}-${DevAwsAccountId}-dev
+              # - Effect: Allow
+              #   Action:
+              #     - sts:AssumeRole
+              #   Resource:
+              #     - !Sub arn:aws:iam::${ProductionAccountId}:role/CodePipelineServiceRole-${AWS::Region}-${DevAwsAccountId}-dev
               - Resource: '*'
                 Effect: Allow
                 Action:

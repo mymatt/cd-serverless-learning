@@ -21,15 +21,12 @@ Parameters:
   GitHubOwner:
     Description: Github Owner
     Type: String
-    Default:
   GitHubToken:
     Type: String
     Description: Person token for Git Repo
-    Default:
   SecretToken:
     Type: String
     Description: Webhook authenticate token invoked by GitHub
-    Default: 
   RepositoryName:
     Description: Git Repository
     Type: String
