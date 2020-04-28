@@ -1,0 +1,152 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description:
+
+Parameters:
+  PipelineServiceRoleArn:
+    Description: Service role for Pipeline
+    Type: String
+  GitHubOwner:
+    Description: Github Owner
+    Type: String
+  GitHubToken:
+    Type: String
+    Description: Personal token for Git Repo
+  SecretToken:
+    Type: String
+    Description: Webhook authenticate token invoked by GitHub
+  RepositoryName:
+    Description: Git Repository
+    Type: String
+  BranchName:
+    Description: Branch name of Git Repo
+    Type: String
+  ArtifactBucket:
+    Description: Artifact S3 bucket
+    Type: String
+  BuildImageName:
+    Description: Image for application build
+    Type: String
+  ComputeType:
+    AllowedValues:
+      - BUILD_GENERAL1_SMALL
+      - BUILD_GENERAL1_MEDIUM
+      - BUILD_GENERAL1_LARGE
+    Default: BUILD_GENERAL1_SMALL
+    Description: AWS CodeBuild project compute type.
+    Type: String
+
+Resources:
+  AppPipelineWebhook:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Ref SecretToken
+          # setup secrets manager {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
+      Filters:
+        - JsonPath: "$.ref"
+          MatchEquals: refs/heads/{Branch}
+      TargetPipeline: !Ref AppPipeline
+      TargetAction: Source
+      Name: AppPipelineWebhook
+      TargetPipelineVersion: !GetAtt AppPipeline.Version
+      RegisterWithThirdParty: true
+
+  AppPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !Ref PipelineServiceRoleArn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+        # EncryptionKey:
+        #   Id: !Ref ArtifactBucketKeyArn
+        #   Type: KMS
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              RunOrder: 1
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: SourceArtifact
+              Configuration:
+                Owner: !Ref GitHubOwner
+                Repo: !Ref RepositoryName
+                Branch: !Ref BranchName
+                OAuthToken: !Ref GitHubToken
+                  # setup secrets manager {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
+                PollForSourceChanges: false
+        - Name: Build
+          Actions:
+            - Name: Build
+              RunOrder: 2
+              InputArtifacts:
+                - Name: SourceArtifact
+              ActionTypeId:
+                Category: Build
+                Provider: CodeBuild
+                Owner: AWS
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref BuildProject
+              OutputArtifacts:
+                - Name: BuildArtifact
+        - Name: Deploy
+          Actions:
+            - Name: Deploy
+              RunOrder: 3
+              InputArtifacts:
+                - Name: BuildArtifact
+              ActionTypeId:
+                Category: Deploy
+                Provider: CodeBuild
+                Owner: AWS
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref DeployProject
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.build.yaml
+      Environment:
+        ComputeType: !Ref ComputeType
+        Type: LINUX_CONTAINER
+        Image: !Ref BuildImageName
+        # EnvironmentVariables:
+        #   - Name: AWS_ACCOUNT_ID
+        #     Value: !Ref AWS::AccountId
+        #   - Name: SAM_BUCKET
+        #     Value: !Ref SamTranslationBucket
+      ServiceRole: !Ref PipelineServiceRoleArn
+      # EncryptionKey: !Ref ArtifactBucketKeyArn
+
+  DeployProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.deploy.yaml
+      Environment:
+        ComputeType: !Ref ComputeType
+        Type: LINUX_CONTAINER
+        Image: !Ref BuildImageName
+        # EnvironmentVariables:
+        #   - Name: AWS_ACCOUNT_ID
+        #     Value: !Ref AWS::AccountId
+        #   - Name: SAM_BUCKET
+        #     Value: !Ref SamTranslationBucket
+      ServiceRole: !Ref PipelineServiceRoleArn
+      # EncryptionKey: !Ref ArtifactBucketKeyArn

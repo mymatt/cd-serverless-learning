@@ -1,0 +1,94 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description:
+
+Parameters:
+  ProductionAccountId:
+    Description: AWS account ID for development account
+    Type: String
+  BucketName:
+    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    Type: String
+    Default: mm-artifact-bucket
+
+Resources:
+  PiplineArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+
+  ArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PiplineArtifactBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Resource:
+              - !GetAtt PiplineArtifactBucket.Arn
+              - !Sub ${PiplineArtifactBucket.Arn}/*
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
+          # - Action:
+          #     - s3:GetObject
+          #     - s3:PutObject
+          #     - s3:ListBucket
+          #   Effect: Allow
+          #   Resource:
+          #     - !GetAtt PiplineArtifactBucket.Arn
+          #     - !Sub ${PiplineArtifactBucket.Arn}/*
+          #   Principal:
+          #     AWS:
+          #       - !Sub arn:aws:iam::${ProductionAccountId}:root
+
+  PipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - codepipeline.amazonaws.com
+              - codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - lambda:Invoke*
+                  - Lambda:List*
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource:
+                  - !Sub arn:aws:iam::${ProductionAccountId}:role/CodePipelineServiceRole-${AWS::Region}-${DevAwsAccountId}-dev
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                    - cloudformation:ListExports
+
+Outputs:
+  ArtifactBucket:
+    Description: Bucket for Code Pipeline Artifacts
+    Value: !Ref PiplineArtifactBucket
+  PipelineServiceRoleArn:
+    Description: IAM role for CodePipeline and CodeBuild
+    Value: !GetAtt PipelineServiceRole.Arn

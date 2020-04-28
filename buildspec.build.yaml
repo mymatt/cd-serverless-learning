@@ -1,0 +1,10 @@
+version: 0.2
+phases:
+  build:
+    commands:
+      - sam build
+
+artifacts:
+  type: zip
+  files:
+    - template.yaml
