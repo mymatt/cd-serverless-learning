@@ -24,6 +24,9 @@ Parameters:
   ArtifactBucket:
     Description: Artifact S3 bucket
     Type: String
+  SamBucket:
+    Description: SAM Deployment S3 bucket
+    Type: String
   BuildImageName:
     Description: Image for application build
     Type: String
@@ -35,6 +38,9 @@ Parameters:
     Default: BUILD_GENERAL1_SMALL
     Description: AWS CodeBuild project compute type.
     Type: String
+  AppStackName:
+    Type: String
+    Default: sam-codepipeline-app
 
 Resources:
   AppPipelineWebhook:
@@ -123,11 +129,9 @@ Resources:
         ComputeType: !Ref ComputeType
         Type: LINUX_CONTAINER
         Image: !Ref BuildImageName
-        # EnvironmentVariables:
-        #   - Name: AWS_ACCOUNT_ID
-        #     Value: !Ref AWS::AccountId
-        #   - Name: SAM_BUCKET
-        #     Value: !Ref SamTranslationBucket
+        EnvironmentVariables:
+          - Name: SAM_BUCKET
+            Value: !Ref SamBucket
       ServiceRole: !Ref PipelineServiceRoleArn
       # EncryptionKey: !Ref ArtifactBucketKeyArn
 
@@ -143,10 +147,8 @@ Resources:
         ComputeType: !Ref ComputeType
         Type: LINUX_CONTAINER
         Image: !Ref BuildImageName
-        # EnvironmentVariables:
-        #   - Name: AWS_ACCOUNT_ID
-        #     Value: !Ref AWS::AccountId
-        #   - Name: SAM_BUCKET
-        #     Value: !Ref SamTranslationBucket
+        EnvironmentVariables:
+          - Name: APP_STACK_NAME
+            Value: !Ref AppStackName
       ServiceRole: !Ref PipelineServiceRoleArn
       # EncryptionKey: !Ref ArtifactBucketKeyArn

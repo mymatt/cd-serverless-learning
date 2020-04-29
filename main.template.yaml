@@ -24,20 +24,22 @@ Parameters:
   GitHubToken:
     Type: String
     Description: Person token for Git Repo
+    NoEcho: true
+    MinLength: 40
+    MaxLength: 40
+    AllowedPattern: '[a-z0-9]*'
   SecretToken:
     Type: String
     Description: Webhook authenticate token invoked by GitHub
   RepositoryName:
     Description: Git Repository
     Type: String
-    # AllowedPattern:
-    # ConstraintDescription:
-    Default:
+    Default: https://github.com/mymatt/cd-serverless
+    AllowedPattern: "[A-Za-z0-9-]+"
   BranchName:
     Description: Branch name of Git Repo
     Type: String
-    # AllowedPattern:
-    # ConstraintDescription:
+    AllowedPattern: "[A-Za-z0-9-]+"
     Default: master
   BuildImageName:
     Description: Image for application build
@@ -60,6 +62,7 @@ Resources:
       Parameters:
         PipelineServiceRoleArn: !GetAtt UserStack.Outputs.PipelineServiceRoleArn
         ArtifactBucket: !GetAtt UserStack.Outputs.ArtifactBucket
+        SamBucket: !GetAtt UserStack.Outputs.SamBucket
         GitHubOwner: !Ref GitHubOwner
         GitHubToken: !Ref GitHubToken
         SecretToken: !Ref SecretToken

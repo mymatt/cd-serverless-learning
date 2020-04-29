@@ -12,6 +12,30 @@ Parameters:
     Default: mm-artifact-bucket
 
 Resources:
+  SamBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 2
+            Status: Enabled
+
+  SamBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SamBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Resource:
+              - !GetAtt SamBucket.Arn
+              - !Sub ${SamBucket.Arn}/*
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
+
   PiplineArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -89,6 +113,9 @@ Outputs:
   ArtifactBucket:
     Description: Bucket for Code Pipeline Artifacts
     Value: !Ref PiplineArtifactBucket
+  SamBucket:
+    Description: Bucket for deploying SAM
+    Value: !Ref SamBucket
   PipelineServiceRoleArn:
     Description: IAM role for CodePipeline and CodeBuild
     Value: !GetAtt PipelineServiceRole.Arn

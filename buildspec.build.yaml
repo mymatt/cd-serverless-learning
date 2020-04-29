@@ -2,9 +2,11 @@ version: 0.2
 phases:
   build:
     commands:
-      - sam build
+      - cd sam-app
+      # - sam build
+      - sam package --s3-bucket ${SAM_BUCKET} --output-template-file packaged-template.yaml
 
 artifacts:
   type: zip
   files:
-    - template.yaml
+    - packaged-template.yaml
