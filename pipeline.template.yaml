@@ -48,8 +48,7 @@ Resources:
     Properties:
       Authentication: GITHUB_HMAC
       AuthenticationConfiguration:
-        SecretToken: !Ref SecretToken
-          # setup secrets manager {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
+        SecretToken: {{resolve:secretsmanager:githubSecret:secrets:token}}
       Filters:
         - JsonPath: "$.ref"
           MatchEquals: refs/heads/{Branch}
@@ -85,8 +84,7 @@ Resources:
                 Owner: !Ref GitHubOwner
                 Repo: !Ref RepositoryName
                 Branch: !Ref BranchName
-                OAuthToken: !Ref GitHubToken
-                  # setup secrets manager {{resolve:secretsmanager:MyGitHubSecret:SecretString:token}}
+                OAuthToken: {{resolve:secretsmanager:githubSecret:secrets:token}}
                 PollForSourceChanges: false
         - Name: Build
           Actions:
@@ -101,21 +99,21 @@ Resources:
                 Version: '1'
               Configuration:
                 ProjectName: !Ref BuildProject
-              OutputArtifacts:
-                - Name: BuildArtifact
-        - Name: Deploy
-          Actions:
-            - Name: Deploy
-              RunOrder: 3
-              InputArtifacts:
-                - Name: BuildArtifact
-              ActionTypeId:
-                Category: Deploy
-                Provider: CodeBuild
-                Owner: AWS
-                Version: '1'
-              Configuration:
-                ProjectName: !Ref DeployProject
+        #       OutputArtifacts:
+        #         - Name: BuildArtifact
+        # - Name: Deploy
+        #   Actions:
+        #     - Name: Deploy
+        #       RunOrder: 3
+        #       InputArtifacts:
+        #         - Name: BuildArtifact
+        #       ActionTypeId:
+        #         Category: Deploy
+        #         Provider: CodeBuild
+        #         Owner: AWS
+        #         Version: '1'
+        #       Configuration:
+        #         ProjectName: !Ref DeployProject
 
   BuildProject:
     Type: AWS::CodeBuild::Project
