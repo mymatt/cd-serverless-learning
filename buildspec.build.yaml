@@ -5,8 +5,9 @@ phases:
       - cd sam-app
       # - sam build
       - sam package --s3-bucket ${SAM_BUCKET} --output-template-file packaged-template.yaml
+      - sam deploy --template-file packaged-template.yaml --stack-name ${APP_STACK_NAME} --capabilities CAPABILITY_IAM --no-fail-on-empty-changeset
 
-artifacts:
-  type: zip
-  files:
-    - packaged-template.yaml
+# artifacts:
+#   type: zip
+#   files:
+#     - packaged-template.yaml

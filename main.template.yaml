@@ -34,7 +34,6 @@ Parameters:
   RepositoryName:
     Description: Git Repository
     Type: String
-    Default: https://github.com/mymatt/cd-serverless
     AllowedPattern: "[A-Za-z0-9-]+"
   BranchName:
     Description: Branch name of Git Repo
