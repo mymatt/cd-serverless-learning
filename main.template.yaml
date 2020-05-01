@@ -1,16 +1,15 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description:
-
+Description: Master Template for CD
 Parameters:
-  ProductionAccountId:
-    Description: AWS account ID for development account
-    Type: String
-    AllowedPattern: (\d{12}|^$)
-    ConstraintDescription: Must be an AWS account ID
-    Default: '764573172366'
+  # ProductionAccountId:
+  #   Description: AWS account ID for development account
+  #   Type: String
+  #   AllowedPattern: (\d{12}|^$)
+  #   ConstraintDescription: Must be an AWS account ID
+  #   Default: '764573172366'
   TemplateBucketName:
-    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    # AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
     Default: mm-stack
     Description: S3 bucket name for stack templates
     Type: String
@@ -21,24 +20,24 @@ Parameters:
   GitHubOwner:
     Description: Github Owner
     Type: String
-  GitHubToken:
-    Type: String
-    Description: Person token for Git Repo
-    NoEcho: true
-    MinLength: 40
-    MaxLength: 40
-    AllowedPattern: '[a-z0-9]*'
-  SecretToken:
-    Type: String
-    Description: Webhook authenticate token invoked by GitHub
+  # GitHubToken:
+  #   Type: String
+  #   Description: Person token for Git Repo
+  #   NoEcho: true
+  #   MinLength: 40
+  #   MaxLength: 40
+  #   AllowedPattern: '[a-z0-9]*'
+  # SecretToken:
+  #   Type: String
+  #   Description: Webhook authenticate token invoked by GitHub
   RepositoryName:
     Description: Git Repository
     Type: String
-    AllowedPattern: "[A-Za-z0-9-]+"
+    # AllowedPattern: "[A-Za-z0-9-]+"
   BranchName:
     Description: Branch name of Git Repo
     Type: String
-    AllowedPattern: "[A-Za-z0-9-]+"
+    # AllowedPattern: "[A-Za-z0-9-]+"
     Default: master
   BuildImageName:
     Description: Image for application build
@@ -50,8 +49,8 @@ Resources:
   UserStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      Parameters:
-        ProductionAccountId: !Ref ProductionAccountId
+      # Parameters:
+      #   ProductionAccountId: !Ref ProductionAccountId
       TemplateURL: !Sub https://${TemplateBucketName}.s3.amazonaws.com/${TemplateKeyPrefix}/user.template.yaml
       TimeoutInMinutes: 60
 
@@ -63,8 +62,8 @@ Resources:
         ArtifactBucket: !GetAtt UserStack.Outputs.ArtifactBucket
         SamBucket: !GetAtt UserStack.Outputs.SamBucket
         GitHubOwner: !Ref GitHubOwner
-        GitHubToken: !Ref GitHubToken
-        SecretToken: !Ref SecretToken
+        # GitHubToken: !Ref GitHubToken
+        # SecretToken: !Ref SecretToken
         RepositoryName: !Ref RepositoryName
         BranchName: !Ref BranchName
         BuildImageName: !Ref BuildImageName

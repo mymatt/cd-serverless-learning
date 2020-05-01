@@ -1,7 +1,6 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description:
-
+Description: Dynamic Pipeline created per account
 Parameters:
   PipelineServiceRoleArn:
     Description: Service role for Pipeline
@@ -9,12 +8,12 @@ Parameters:
   GitHubOwner:
     Description: Github Owner
     Type: String
-  GitHubToken:
-    Type: String
-    Description: Personal token for Git Repo
-  SecretToken:
-    Type: String
-    Description: Webhook authenticate token invoked by GitHub
+  # GitHubToken:
+  #   Type: String
+  #   Description: Personal token for Git Repo
+  # SecretToken:
+  #   Type: String
+  #   Description: Webhook authenticate token invoked by GitHub
   RepositoryName:
     Description: Git Repository
     Type: String
@@ -48,7 +47,7 @@ Resources:
     Properties:
       Authentication: GITHUB_HMAC
       AuthenticationConfiguration:
-        SecretToken: {{resolve:secretsmanager:githubSecret:secrets:token}}
+        SecretToken: '{{resolve:ssm:githubSecrettoken:1}}'
       Filters:
         - JsonPath: "$.ref"
           MatchEquals: refs/heads/{Branch}
@@ -84,7 +83,7 @@ Resources:
                 Owner: !Ref GitHubOwner
                 Repo: !Ref RepositoryName
                 Branch: !Ref BranchName
-                OAuthToken: {{resolve:secretsmanager:githubSecret:secrets:token}}
+                OAuthToken: '{{resolve:ssm:githubSecrettoken:1}}'
                 PollForSourceChanges: false
         - Name: Build
           Actions:

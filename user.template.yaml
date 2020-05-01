@@ -1,20 +1,24 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description:
-
+Description: Template that sets up user account specific resources
 Parameters:
-  ProductionAccountId:
-    Description: AWS account ID for development account
-    Type: String
-  BucketName:
+  # ProductionAccountId:
+  #   Description: AWS account ID for development account
+  #   Type: String
+  ArtifactBucketName:
     AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
     Type: String
     Default: mm-artifact-bucket
+  SamBucketName:
+    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    Type: String
+    Default: mm-sam-bucket
 
 Resources:
   SamBucket:
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: !Ref SamBucketName
       LifecycleConfiguration:
         Rules:
           - ExpirationInDays: 2
@@ -35,11 +39,12 @@ Resources:
             Principal:
               AWS:
                 - !Sub arn:aws:iam::${AWS::AccountId}:root
+                # - !Sub arn:aws:iam::${AWS::AccountId}:user/nw
 
   PiplineArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref BucketName
+      BucketName: !Ref ArtifactBucketName
 
   ArtifactBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -56,6 +61,7 @@ Resources:
             Principal:
               AWS:
                 - !Sub arn:aws:iam::${AWS::AccountId}:root
+                # - !Sub arn:aws:iam::${AWS::AccountId}:user/nw
           # - Action:
           #     - s3:GetObject
           #     - s3:PutObject
@@ -93,6 +99,12 @@ Resources:
                   - codebuild:BatchGetBuilds
                   - lambda:Invoke*
                   - Lambda:List*
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
               - Resource: '*'
                 Effect: Allow
                 Action:
