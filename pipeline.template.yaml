@@ -129,6 +129,8 @@ Resources:
         EnvironmentVariables:
           - Name: SAM_BUCKET
             Value: !Ref SamBucket
+          - Name: APP_STACK_NAME
+            Value: !Ref AppStackName
       ServiceRole: !Ref PipelineServiceRoleArn
       # EncryptionKey: !Ref ArtifactBucketKeyArn
 
