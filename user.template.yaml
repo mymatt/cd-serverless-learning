@@ -121,6 +121,7 @@ Resources:
                 Action:
                     - cloudformation:ListExports
                     - cloudformation:DescribeStacks
+                    - cloudformation:CreateChangeSet
 
 Outputs:
   ArtifactBucket:
