@@ -120,6 +120,7 @@ Resources:
                 Effect: Allow
                 Action:
                     - cloudformation:ListExports
+                    - cloudformation:DescribeStacks
 
 Outputs:
   ArtifactBucket:
